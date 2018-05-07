@@ -37,7 +37,7 @@ public class IssuesController {
     /**
      * createIssue
      */
-    @PutMapping("/put")
+    @PostMapping("/post")
     public IssueModel create(@RequestBody IssueModel issueModel) {
 
         if( issueModel.getId()==null)
