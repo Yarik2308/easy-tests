@@ -2,6 +2,7 @@ package easytests.api.v1.controllers;
 
 import easytests.api.v1.mappers.IssuesMapper;
 import easytests.api.v1.models.Issue;
+import easytests.core.models.IssueModel;
 import easytests.core.models.IssueModelInterface;
 import easytests.core.models.SubjectModel;
 import easytests.core.options.builder.IssuesOptionsBuilder;
@@ -36,6 +37,14 @@ public class IssuesController {
     /**
      * createIssue
      */
+    @PutMapping("/put")
+    public IssueModel create(@RequestBody IssueModel issueModel) {
+
+        if( issueModel.getId()==null)
+            this.issuesService.save(issueModel);
+
+        return issueModel;
+    }
     /**
      * updateIssue
      */
