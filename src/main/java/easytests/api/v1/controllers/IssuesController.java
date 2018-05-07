@@ -42,6 +42,15 @@ public class IssuesController {
     /**
      * showIssueById
      */
+    @GetMapping("/get/{issueId}")
+    public Issue list(@RequestParam("issueId") int issueId){
+
+        final IssueModelInterface issueModel = this.issuesService.find(issueId);
+
+        return issueModel
+                .map(model -> this.issuesMapper.map(model, Issue.class))
+                .collect(Collectors.toList());
+    }
     /**
      * deleteIssueById
      */
