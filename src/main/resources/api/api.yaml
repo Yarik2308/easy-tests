@@ -1100,16 +1100,16 @@ definitions:
   V1AdminAnswer:
     type: object
     required:
-      - text
-      - isRight
+      - txt
+      - right
       - number
     properties:
       id:
         type: integer
         format: int64
-      text:
+      txt:
         type: string
-      isRight:
+      right:
         type: boolean
       number:
         type: integer

@@ -42,6 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(controllers = QuestionsController.class, secure = false)
 public class QuestionsControllerTest {
     private static String id = "id";
+    private static String txt = "txt";
     private static String text = "text";
     private static String type = "type";
     private static String topic = "topic";
@@ -49,7 +50,7 @@ public class QuestionsControllerTest {
 
     private static String idAdminAnswer = "id";
     private static String textAdminAnswer = "text";
-    private static String isRight = "isRight";
+    private static String right = "right";
     private static String number = "number";
     private static String question = "question";
 
@@ -112,12 +113,12 @@ public class QuestionsControllerTest {
                         .with(text, questionModel.getText())
                         .with(type, new JsonSupport().with(id, questionModel.getQuestionType().getId()))
                         .with(topic, new JsonSupport().with(id, questionModel.getTopic().getId()))
-                        .with(answers, new JsonSupport()
+                        .with(answers, new JsonSupport().with(new JsonSupport()
                                 .with(id, questionModel.getAnswers().get(0).getId())
                                 .with(text, questionModel.getAnswers().get(0).getTxt())
                                 .with(isRight, questionModel.getAnswers().get(0).getRight())
                                 .with(number, questionModel.getAnswers().get(0).getSerialNumber())
-                                )
+                                ))
                         .build()
                 ))
                 .andReturn();
@@ -162,10 +163,8 @@ public class QuestionsControllerTest {
         });
         questionModel.setAnswers(answersModels);
         when(this.questionsOptionsBuilder.forAuth()).thenReturn(new QuestionsOptions());
-       // when(this.questionTypesService.find(1))
-         //       .thenReturn(new QuestionTypeModelEmpty(1));
         when(this.questionsService.find(any(Integer.class), any(QuestionsOptionsInterface.class))).thenReturn(questionModel);
-        when(this.acl.hasAccess(any(UserModelInterface.class))).thenReturn(true);
+        when(this.acl.hasAccess(any(QuestionModelInterface.class))).thenReturn(true);
 
         mvc.perform(get("/v1/questions/1")
                 .contentType(MediaType.APPLICATION_JSON))
@@ -174,13 +173,21 @@ public class QuestionsControllerTest {
                 .andExpect(content().json(new JsonSupport()
                         .with(id, questionModel.getId())
                         .with(text, questionModel.getText())
-                        .with(type, new JsonSupport().with(id, questionModel.getQuestionType().getId()))
+                        .with(type, questionModel.getQuestionType().getId())
                         .with(topic, new JsonSupport().with(id, questionModel.getTopic().getId()))
                         .with(answers, new JsonSupport()
                                 .with(new JsonSupport()
-                                        .with(id, answersModels.get(0).getId()))
+                                        .with(id, answersModels.get(0).getId())
+                                        .with(txt, answersModels.get(0).getTxt())
+                                        .with(right, answersModels.get(0).getRight())
+                                        .with(number, answersModels.get(0).getSerialNumber())
+                                )
                                 .with(new JsonSupport()
-                                        .with(id, answersModels.get(1).getId()))
+                                        .with(id, answersModels.get(1).getId())
+                                        .with(txt, answersModels.get(1).getTxt())
+                                        .with(right, answersModels.get(1).getRight())
+                                        .with(number, answersModels.get(1).getSerialNumber())
+                                )
                         )
                         .build()
                 ))
