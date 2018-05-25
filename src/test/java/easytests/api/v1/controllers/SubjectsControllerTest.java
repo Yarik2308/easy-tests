@@ -198,19 +198,20 @@ public class SubjectsControllerTest {
 
     @Test
     public void testCreateForbidden() throws Exception {
-        int userIdParamValue = 2;
-
-        when(this.usersService.find(userIdParamValue))
-                .thenReturn(new UserModelEmpty(userIdParamValue));
+        when(this.usersService.find(2)).thenReturn(new UserModelEmpty(2));
         when(this.acl.hasAccess(any(UserModelInterface.class))).thenReturn(false);
 
-        this.mvc.perform(get("/v1/subjects?userId={userIdParamValue}", userIdParamValue)
+        mvc.perform(post("/v1/subjects")
                 .contentType(MediaType.APPLICATION_JSON)
-        )
-                .andExpect(status().isForbidden())
-                .andExpect(content().string(""))
+                .content(new JsonSupport()
+                        .with(name, "Subject1")
+                        .with(description, "Subject description")
+                        .with(user, new JsonSupport().with(id,2))
+                        .build()
+                ))
+                .andExpect(status().isForbidden()
+                )
                 .andReturn();
-
     }
     /**
      * update
