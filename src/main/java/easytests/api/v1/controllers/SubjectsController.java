@@ -73,6 +73,7 @@ public class SubjectsController extends AbstractController {
         this.checkUser(subject);
 
         final SubjectModelInterface subjectModel = this.subjectsMapper.map(subject, SubjectModel.class);
+        subjectModel.setUser(usersService.find(subject.getUser().getId()));
 
         this.subjectsService.save(subjectModel);
 

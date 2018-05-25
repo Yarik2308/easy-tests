@@ -157,14 +157,15 @@ public class SubjectsControllerTest {
             return null;
         }).when(this.subjectsService).save(any(SubjectModelInterface.class));
 
-        when(this.usersService.find(any(Integer.class))).thenReturn(new UserModelEmpty());
+        final UserModelInterface userModel = this.usersSupport.getModelFixtureMock(1);
+        when(this.usersService.find(any(Integer.class))).thenReturn(userModel);
         when(this.acl.hasAccess(any(UserModelInterface.class))).thenReturn(true);
 
         mvc.perform(post("/v1/subjects")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(new JsonSupport()
-                        .with(name, "Name1")
-                        .with(description, "Description1")
+                        .with(name, "Subject")
+                        .with(description, "Subject description")
                         .with(user, new JsonSupport().with(id,2))
                         .build()
                 ))
