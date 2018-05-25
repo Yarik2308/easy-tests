@@ -1,16 +1,20 @@
 package easytests.api.v1.controllers;
 
 import easytests.api.v1.mappers.SubjectsMapper;
+import easytests.api.v1.models.Subject;
 import easytests.auth.services.AccessControlLayerServiceInterface;
 import easytests.config.SwaggerRequestValidationConfig;
 import easytests.core.models.*;
 import easytests.core.models.empty.UserModelEmpty;
+import easytests.core.options.UsersOptionsInterface;
 import easytests.core.options.builder.SubjectsOptionsBuilder;
 import easytests.core.services.SubjectsServiceInterface;
 import easytests.core.options.SubjectsOptions;
 import easytests.core.options.SubjectsOptionsInterface;
 import easytests.core.services.UsersServiceInterface;
 import easytests.support.SubjectsSupport;
+import easytests.support.UsersSupport;
+import easytests.core.entities.SubjectEntity;
 import easytests.support.JsonSupport;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +30,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -63,6 +68,8 @@ public class SubjectsControllerTest {
     SubjectsOptionsBuilder subjectsOptionsBuilder;
 
     private SubjectsSupport subjectsSupport = new SubjectsSupport();
+
+    private UsersSupport usersSupport = new UsersSupport();
 
     @Test
     public void testListSuccess() throws Exception {
@@ -135,6 +142,82 @@ public class SubjectsControllerTest {
     /**
      * create
      */
+    @Test
+    public void testCreateSuccess() throws Exception {
+        doAnswer(invocation -> {
+            final SubjectModel subjectModel = (SubjectModel) invocation.getArguments()[0];
+            subjectModel.setId(5);
+            final SubjectEntity subjectCheckEntity = this.subjectsSupport.getEntityAdditionalMock(0);
+            final SubjectModel subjectCheckModel = new SubjectModel();
+            subjectCheckModel.map(subjectCheckEntity);
+            subjectCheckModel.setId(5);
+            int userIdParamValue =2;
+            subjectModel.setUser(new UserModelEmpty(userIdParamValue));
+            this.subjectsSupport.assertEquals(subjectModel, subjectCheckModel);
+            return null;
+        }).when(this.subjectsService).save(any(SubjectModelInterface.class));
+
+        when(this.usersService.find(any(Integer.class))).thenReturn(new UserModelEmpty());
+        when(this.acl.hasAccess(any(UserModelInterface.class))).thenReturn(true);
+
+        mvc.perform(post("/v1/subjects")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new JsonSupport()
+                        .with(name, "Name1")
+                        .with(description, "Description1")
+                        .with(user, new JsonSupport().with(id,2))
+                        .build()
+                ))
+                .andExpect(status().is(201))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(content().json(
+                        new JsonSupport()
+                                .with(id, 5)
+                                .build()
+                ))
+                .andReturn();
+    }
+
+    @Test
+    public void testCreateWithIdFailed() throws Exception {
+        mvc.perform(post("/v1/subjects")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new JsonSupport()
+                        .with(id, 2)
+                        .with(name, "Name1")
+                        .with(description, "Description1")
+                        .with(user, new JsonSupport().with(2))
+                        .build()
+                ))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(""))
+                .andReturn();
+    }
+
+    @Test
+    public void testCheckUserBadRequest() throws Exception {
+        Subject subject = new Subject();
+        mvc.perform(post("/v1/subjects").param("subject", "subject"))
+                .andExpect(status().isBadRequest());
+
+    }
+
+    @Test
+    public void testCreateForbidden() throws Exception {
+        int userIdParamValue = 2;
+
+        when(this.usersService.find(userIdParamValue))
+                .thenReturn(new UserModelEmpty(userIdParamValue));
+        when(this.acl.hasAccess(any(UserModelInterface.class))).thenReturn(false);
+
+        this.mvc.perform(get("/v1/subjects?userId={userIdParamValue}", userIdParamValue)
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+                .andExpect(status().isForbidden())
+                .andExpect(content().string(""))
+                .andReturn();
+
+    }
     /**
      * update
      */
