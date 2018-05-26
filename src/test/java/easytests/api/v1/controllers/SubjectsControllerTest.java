@@ -6,7 +6,6 @@ import easytests.auth.services.AccessControlLayerServiceInterface;
 import easytests.config.SwaggerRequestValidationConfig;
 import easytests.core.models.*;
 import easytests.core.models.empty.UserModelEmpty;
-import easytests.core.options.UsersOptionsInterface;
 import easytests.core.options.builder.SubjectsOptionsBuilder;
 import easytests.core.services.SubjectsServiceInterface;
 import easytests.core.options.SubjectsOptions;
@@ -14,13 +13,14 @@ import easytests.core.options.SubjectsOptionsInterface;
 import easytests.core.services.UsersServiceInterface;
 import easytests.support.SubjectsSupport;
 import easytests.support.UsersSupport;
-import easytests.core.entities.SubjectEntity;
 import easytests.support.JsonSupport;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import static org.mockito.BDDMockito.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -139,9 +139,7 @@ public class SubjectsControllerTest {
                 .andReturn();
 
     }
-    /**
-     * create
-     */
+
     @Test
     public void testCreateSuccess() throws Exception {
         doAnswer(invocation -> {
@@ -153,6 +151,7 @@ public class SubjectsControllerTest {
         final UserModelInterface userModel = this.usersSupport.getModelFixtureMock(1);
         when(this.usersService.find(any(Integer.class))).thenReturn(userModel);
         when(this.acl.hasAccess(any(UserModelInterface.class))).thenReturn(true);
+        final ArgumentCaptor<SubjectModelInterface> subjectCaptor = ArgumentCaptor.forClass(SubjectModelInterface.class);
 
         mvc.perform(post("/v1/subjects")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -170,6 +169,10 @@ public class SubjectsControllerTest {
                                 .build()
                 ))
                 .andReturn();
+        verify(this.subjectsService, times(1)).save(subjectCaptor.capture());
+        Assert.assertEquals(subjectCaptor.getValue().getName(), "Subject");
+        Assert.assertEquals(subjectCaptor.getValue().getDescription(), "Subject description");
+        Assert.assertEquals(subjectCaptor.getValue().getUser().getId(), (Integer) 2);
     }
 
     @Test
@@ -206,7 +209,7 @@ public class SubjectsControllerTest {
                 .content(new JsonSupport()
                         .with(name, "Subject1")
                         .with(description, "Subject description")
-                        .with(user, new JsonSupport().with(id,2))
+                        .with(user, new JsonSupport().with(id, 2))
                         .build()
                 ))
                 .andExpect(status().isForbidden()
