@@ -30,6 +30,4 @@ public class SubjectsMapper extends ModelMapper {
                         .skip(UserModelInterface::setId));
 
     }
-
-
 }
