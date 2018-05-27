@@ -7,7 +7,6 @@ import easytests.config.SwaggerRequestValidationConfig;
 import easytests.core.models.*;
 import easytests.core.models.empty.UserModelEmpty;
 import easytests.core.options.builder.SubjectsOptionsBuilder;
-import easytests.core.options.builder.UsersOptionsBuilder;
 import easytests.core.services.SubjectsServiceInterface;
 import easytests.core.options.SubjectsOptions;
 import easytests.core.options.SubjectsOptionsInterface;
@@ -68,9 +67,6 @@ public class SubjectsControllerTest {
     @MockBean
     SubjectsOptionsBuilder subjectsOptionsBuilder;
 
-    @MockBean
-    UsersOptionsBuilder usersOptionsBuilder;
-    
     private SubjectsSupport subjectsSupport = new SubjectsSupport();
 
     private UsersSupport usersSupport = new UsersSupport();
@@ -162,7 +158,7 @@ public class SubjectsControllerTest {
                 .content(new JsonSupport()
                         .with(name, "Subject")
                         .with(description, "Subject description")
-                        .with(user, new JsonSupport().with(id, userModel.getId()))
+                        .with(user, new JsonSupport().with(id,2))
                         .build()
                 ))
                 .andExpect(status().is(201))
@@ -176,7 +172,7 @@ public class SubjectsControllerTest {
         verify(this.subjectsService, times(1)).save(subjectCaptor.capture());
         Assert.assertEquals(subjectCaptor.getValue().getName(), "Subject");
         Assert.assertEquals(subjectCaptor.getValue().getDescription(), "Subject description");
-        Assert.assertEquals(subjectCaptor.getValue().getUser().getId(), (Integer) userModel.getId());
+        Assert.assertEquals(subjectCaptor.getValue().getUser().getId(), (Integer) 2);
     }
 
     @Test
@@ -196,7 +192,15 @@ public class SubjectsControllerTest {
     }
 
     @Test
-    public void testCreateBadRequest() throws Exception {
+    public void testCheckUserBadRequest() throws Exception {
+        Subject subject = new Subject();
+        mvc.perform(post("/v1/subjects").param("subject", "subject"))
+                .andExpect(status().isBadRequest());
+
+    }
+
+    @Test
+    public void testCreateForbidden() throws Exception {
         when(this.usersService.find(2)).thenReturn(new UserModelEmpty(2));
         when(this.acl.hasAccess(any(UserModelInterface.class))).thenReturn(false);
 
@@ -208,8 +212,8 @@ public class SubjectsControllerTest {
                         .with(user, new JsonSupport().with(id, 2))
                         .build()
                 ))
-                .andExpect(status().isForbidden())
-                .andExpect(content().string(""))
+                .andExpect(status().isForbidden()
+                )
                 .andReturn();
     }
     /**
