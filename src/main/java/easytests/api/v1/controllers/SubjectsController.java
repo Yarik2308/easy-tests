@@ -11,6 +11,7 @@ import easytests.core.models.SubjectModelInterface;
 import easytests.core.models.UserModelInterface;
 import easytests.core.options.SubjectsOptionsInterface;
 import easytests.core.options.builder.SubjectsOptionsBuilderInterface;
+import easytests.core.options.builder.UsersOptionsBuilderInterface;
 import easytests.core.services.SubjectsServiceInterface;
 import easytests.core.services.UsersServiceInterface;
 import java.util.List;
@@ -35,6 +36,9 @@ public class SubjectsController extends AbstractController {
 
     @Autowired
     protected SubjectsOptionsBuilderInterface subjectsOptionsBuilder;
+
+    @Autowired
+    protected UsersOptionsBuilderInterface usersOptionsBuilder;
 
     @Autowired
     protected UsersServiceInterface usersService;
@@ -82,17 +86,17 @@ public class SubjectsController extends AbstractController {
     }
 
     private void checkUser(Subject subject) throws BadRequestException, ForbiddenException {
-        if (subject.getUser() != null) {
-            final UserModelInterface userModel = this.usersService.find(subject.getUser().getId());
+        final UserModelInterface userModel = this.usersService.find(
+            subject.getUser().getId(),
+            this.usersOptionsBuilder.forAuth()
+        );
 
-            if (!this.acl.hasAccess(userModel)) {
-                throw new ForbiddenException();
-            }
-        } else {
-            throw new BadRequestException("user must exist");
+        if (!this.acl.hasAccess(userModel)) {
+            throw new ForbiddenException();
         }
 
     }
+
     /**
      * update
      */
