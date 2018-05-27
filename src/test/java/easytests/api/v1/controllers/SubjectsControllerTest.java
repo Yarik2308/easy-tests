@@ -145,6 +145,13 @@ public class SubjectsControllerTest {
         doAnswer(invocation -> {
             final SubjectModel subjectModel = (SubjectModel) invocation.getArguments()[0];
             subjectModel.setId(5);
+            final SubjectEntity subjectCheckEntity = this.subjectsSupport.getEntityAdditionalMock(0);
+            final SubjectModel subjectCheckModel = new SubjectModel();
+            subjectCheckModel.map(subjectCheckEntity);
+            subjectCheckModel.setId(5);
+            int userIdParamValue =2;
+            subjectModel.setUser(new UserModelEmpty(userIdParamValue));
+            this.subjectsSupport.assertEquals(subjectModel, subjectCheckModel);
             return null;
         }).when(this.subjectsService).save(any(SubjectModelInterface.class));
 
