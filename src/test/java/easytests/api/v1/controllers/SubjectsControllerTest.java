@@ -4,6 +4,7 @@ import easytests.api.v1.mappers.SubjectsMapper;
 import easytests.api.v1.models.Subject;
 import easytests.auth.services.AccessControlLayerServiceInterface;
 import easytests.config.SwaggerRequestValidationConfig;
+import easytests.core.entities.SubjectEntity;
 import easytests.core.models.*;
 import easytests.core.models.empty.UserModelEmpty;
 import easytests.core.options.builder.SubjectsOptionsBuilder;
@@ -145,13 +146,6 @@ public class SubjectsControllerTest {
         doAnswer(invocation -> {
             final SubjectModel subjectModel = (SubjectModel) invocation.getArguments()[0];
             subjectModel.setId(5);
-            final SubjectEntity subjectCheckEntity = this.subjectsSupport.getEntityAdditionalMock(0);
-            final SubjectModel subjectCheckModel = new SubjectModel();
-            subjectCheckModel.map(subjectCheckEntity);
-            subjectCheckModel.setId(5);
-            int userIdParamValue =2;
-            subjectModel.setUser(new UserModelEmpty(userIdParamValue));
-            this.subjectsSupport.assertEquals(subjectModel, subjectCheckModel);
             return null;
         }).when(this.subjectsService).save(any(SubjectModelInterface.class));
 
@@ -165,7 +159,7 @@ public class SubjectsControllerTest {
                 .content(new JsonSupport()
                         .with(name, "Subject")
                         .with(description, "Subject description")
-                        .with(user, new JsonSupport().with(id,2))
+                        .with(user, new JsonSupport().with(id, userModel.getId()))
                         .build()
                 ))
                 .andExpect(status().is(201))
@@ -176,10 +170,11 @@ public class SubjectsControllerTest {
                                 .build()
                 ))
                 .andReturn();
+
         verify(this.subjectsService, times(1)).save(subjectCaptor.capture());
         Assert.assertEquals(subjectCaptor.getValue().getName(), "Subject");
         Assert.assertEquals(subjectCaptor.getValue().getDescription(), "Subject description");
-        Assert.assertEquals(subjectCaptor.getValue().getUser().getId(), (Integer) 2);
+        Assert.assertEquals(subjectCaptor.getValue().getUser().getId(), (Integer) userModel.getId());
     }
 
     @Test
